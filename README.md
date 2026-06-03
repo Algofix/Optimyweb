@@ -13,6 +13,18 @@ echo 'export PATH="$HOME/flutter/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
+## App structure
+
+Optimyweb tracks **web optimization projects** (sites you improve) with per-project **tasks**.
+
+| Screen | Purpose |
+|--------|---------|
+| **Home** | List projects, filter by status (Draft / Active / Done) |
+| **New / Edit project** | Name, URL, goal, status, priority |
+| **Project detail** | View project + checklist tasks (Firestore subcollection) |
+
+Full Firestore field definitions: [docs/firestore-schema.md](docs/firestore-schema.md)
+
 ## Firebase setup (use a **new** project)
 
 **Do not** link this app to `obres-publiques-piera` or any project you want left unchanged.
