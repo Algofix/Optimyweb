@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "728473924781",
+    "project_id": "optimyweb-4c4b1",
+    "storage_bucket": "optimyweb-4c4b1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:728473924781:android:22198ce900b690d7050224",
+        "android_client_info": {
+          "package_name": "com.optimyweb.optimyweb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQ1290-KFFp-MUz4dL-G3Mvil6HnYjxIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
