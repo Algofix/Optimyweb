@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../models/analysis.dart';
 import '../models/project.dart';
 import '../models/task.dart';
 import '../services/project_repository.dart';
 import '../services/storage_service.dart';
 import '../utils/image_picker.dart';
+import '../widgets/analysis_section.dart';
 import '../widgets/project_cover.dart';
 import '../widgets/project_url_link.dart';
 import 'project_form_screen.dart';
@@ -23,6 +25,24 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   final _storage = StorageService();
   final _taskCtrl = TextEditingController();
   bool _uploadingCover = false;
+  bool _requestingAnalysis = false;
+
+  Future<void> _runAnalysis(Project project) async {
+    final url = project.url;
+    if (url == null || url.trim().isEmpty) return;
+    setState(() => _requestingAnalysis = true);
+    try {
+      await _repo.requestAnalysis(project.id, url: url.trim());
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not start analysis: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _requestingAnalysis = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -141,95 +161,101 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
             ],
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          body: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: ProjectCover(
-                  imageUrl: project.imageUrl,
-                  uploading: _uploadingCover,
-                  onUpload: () => _uploadCover(project),
-                ),
+              ProjectCover(
+                imageUrl: project.imageUrl,
+                uploading: _uploadingCover,
+                onUpload: () => _uploadCover(project),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: _ProjectHeader(project: project),
+              const SizedBox(height: 12),
+              _ProjectHeader(project: project),
+              const SizedBox(height: 12),
+              StreamBuilder<Analysis?>(
+                stream: _repo.watchLatestAnalysis(widget.projectId),
+                builder: (context, analysisSnap) {
+                  return AnalysisSection(
+                    analysis: analysisSnap.data,
+                    hasUrl: project.url != null && project.url!.trim().isNotEmpty,
+                    busy: _requestingAnalysis,
+                    onRun: () => _runAnalysis(project),
+                  );
+                },
               ),
               const Padding(
-                padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
+                padding: EdgeInsets.fromLTRB(0, 20, 0, 8),
                 child: Text(
                   'Tasks',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _taskCtrl,
-                        decoration: const InputDecoration(
-                          hintText: 'Add a task…',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onSubmitted: (_) => _addTask(),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _taskCtrl,
+                      decoration: const InputDecoration(
+                        hintText: 'Add a task…',
+                        border: OutlineInputBorder(),
+                        isDense: true,
                       ),
+                      onSubmitted: (_) => _addTask(),
                     ),
-                    const SizedBox(width: 8),
-                    IconButton.filled(
-                      onPressed: _addTask,
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: _addTask,
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
               ),
-              Expanded(
-                child: StreamBuilder<List<ProjectTask>>(
-                  stream: _repo.watchTasks(widget.projectId),
-                  builder: (context, taskSnap) {
-                    if (taskSnap.hasError) {
-                      return Center(child: Text(taskSnap.error.toString()));
-                    }
-                    if (!taskSnap.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final tasks = taskSnap.data!;
-                    if (tasks.isEmpty) {
-                      return const Center(
-                        child: Text('No tasks yet — add one above'),
-                      );
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        final task = tasks[index];
-                        return CheckboxListTile(
-                          value: task.done,
-                          onChanged: (_) =>
-                              _repo.toggleTask(widget.projectId, task),
-                          title: Text(
-                            task.title,
-                            style: task.done
-                                ? const TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: Colors.grey,
-                                  )
-                                : null,
-                          ),
-                          secondary: IconButton(
-                            icon: const Icon(Icons.close, size: 20),
-                            onPressed: () =>
-                                _repo.deleteTask(widget.projectId, task.id),
-                          ),
-                        );
-                      },
+              const SizedBox(height: 8),
+              StreamBuilder<List<ProjectTask>>(
+                stream: _repo.watchTasks(widget.projectId),
+                builder: (context, taskSnap) {
+                  if (taskSnap.hasError) {
+                    return Center(child: Text(taskSnap.error.toString()));
+                  }
+                  if (!taskSnap.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
                     );
-                  },
-                ),
+                  }
+                  final tasks = taskSnap.data!;
+                  if (tasks.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: Text('No tasks yet — add one above')),
+                    );
+                  }
+                  return Column(
+                    children: tasks
+                        .map(
+                          (task) => CheckboxListTile(
+                            value: task.done,
+                            onChanged: (_) =>
+                                _repo.toggleTask(widget.projectId, task),
+                            title: Text(
+                              task.title,
+                              style: task.done
+                                  ? const TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      color: Colors.grey,
+                                    )
+                                  : null,
+                            ),
+                            secondary: IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () =>
+                                  _repo.deleteTask(widget.projectId, task.id),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  );
+                },
               ),
             ],
           ),

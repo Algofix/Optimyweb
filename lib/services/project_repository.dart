@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/analysis.dart';
 import '../models/project.dart';
 import '../models/task.dart';
 
@@ -76,6 +77,33 @@ class ProjectRepository {
   Future<void> deleteTask(String projectId, String taskId) async {
     await _projects.doc(projectId).collection('tasks').doc(taskId).delete();
     await _touchProject(projectId);
+  }
+
+  /// Latest analysis run for a project (most recently requested).
+  Stream<Analysis?> watchLatestAnalysis(String projectId) {
+    return _projects
+        .doc(projectId)
+        .collection('analyses')
+        .orderBy('requestedAt', descending: true)
+        .limit(1)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.isEmpty ? null : Analysis.fromFirestore(snap.docs.first));
+  }
+
+  /// Queues an analysis run. The `runProjectAnalysis` Cloud Function picks up
+  /// the `pending` doc, fetches Core Web Vitals + E-E-A-T, and fills it in.
+  Future<void> requestAnalysis(
+    String projectId, {
+    required String url,
+    String strategy = 'mobile',
+  }) async {
+    await _projects.doc(projectId).collection('analyses').add({
+      'status': 'pending',
+      'url': url,
+      'strategy': strategy,
+      'requestedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> setProjectImageUrl(String projectId, String url) async {
