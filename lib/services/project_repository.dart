@@ -78,6 +78,13 @@ class ProjectRepository {
     await _touchProject(projectId);
   }
 
+  Future<void> setProjectImageUrl(String projectId, String url) async {
+    await _projects.doc(projectId).update({
+      'imageUrl': url,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> _touchProject(String projectId) async {
     await _projects.doc(projectId).update({
       'updatedAt': FieldValue.serverTimestamp(),
@@ -95,5 +102,6 @@ extension on Project {
         priority: priority,
         createdAt: createdAt,
         updatedAt: updatedAt,
+        imageUrl: imageUrl,
       );
 }

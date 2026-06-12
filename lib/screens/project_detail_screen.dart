@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../models/task.dart';
 import '../services/project_repository.dart';
+import '../services/storage_service.dart';
+import '../utils/image_picker.dart';
+import '../widgets/project_cover.dart';
 import '../widgets/project_url_link.dart';
 import 'project_form_screen.dart';
 
@@ -17,12 +20,36 @@ class ProjectDetailScreen extends StatefulWidget {
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   final _repo = ProjectRepository();
+  final _storage = StorageService();
   final _taskCtrl = TextEditingController();
+  bool _uploadingCover = false;
 
   @override
   void dispose() {
     _taskCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _uploadCover(Project project) async {
+    final picked = await pickImage();
+    if (picked == null || !mounted) return;
+    setState(() => _uploadingCover = true);
+    try {
+      final url = await _storage.uploadProjectCover(
+        project.id,
+        picked.bytes,
+        contentType: picked.contentType,
+      );
+      await _repo.setProjectImageUrl(project.id, url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image upload failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingCover = false);
+    }
   }
 
   Future<void> _addTask() async {
@@ -118,7 +145,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: ProjectCover(
+                  imageUrl: project.imageUrl,
+                  uploading: _uploadingCover,
+                  onUpload: () => _uploadCover(project),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: _ProjectHeader(project: project),
               ),
               const Padding(

@@ -34,6 +34,7 @@ class Project {
     required this.priority,
     required this.createdAt,
     required this.updatedAt,
+    this.imageUrl,
   });
 
   final String id;
@@ -44,6 +45,9 @@ class Project {
   final int priority;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// Download URL of the project's cover image in Firebase Storage, if any.
+  final String? imageUrl;
 
   factory Project.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
@@ -56,6 +60,7 @@ class Project {
       priority: (data['priority'] as num?)?.toInt() ?? 2,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      imageUrl: data['imageUrl'] as String?,
     );
   }
 
@@ -66,6 +71,7 @@ class Project {
       'goal': goal,
       'status': status.value,
       'priority': priority,
+      'imageUrl': imageUrl,
       'updatedAt': FieldValue.serverTimestamp(),
     };
     if (isNew) {

@@ -58,6 +58,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
         priority: _priority,
         createdAt: widget.existing?.createdAt ?? now,
         updatedAt: now,
+        imageUrl: widget.existing?.imageUrl,
       );
       await _repo.saveProject(project, isNew: !_isEdit);
       if (mounted) Navigator.of(context).pop();
