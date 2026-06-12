@@ -27,12 +27,13 @@ class DefaultFirebaseOptions {
 
   // Replace these placeholders after `flutterfire configure`.
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'REPLACE_ME',
-    appId: 'REPLACE_ME',
-    messagingSenderId: 'REPLACE_ME',
-    projectId: 'REPLACE_ME',
-    authDomain: 'REPLACE_ME.firebaseapp.com',
-    storageBucket: 'REPLACE_ME.firebasestorage.app',
+    apiKey: 'AIzaSyD1CYYu_bPlZ-FYicf-5k6NU2AYmzXC3L4',
+    appId: '1:728473924781:web:5c1e906534282935050224',
+    messagingSenderId: '728473924781',
+    projectId: 'optimyweb-4c4b1',
+    authDomain: 'optimyweb-4c4b1.firebaseapp.com',
+    storageBucket: 'optimyweb-4c4b1.firebasestorage.app',
+    measurementId: 'G-MPNJPX47MK',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
