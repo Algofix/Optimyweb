@@ -16,6 +16,13 @@ Flutter mobile/web app (project + task tracker) backed by Firebase **Firestore**
 - Build web: `flutter build web`
 - Run web (dev): `flutter run -d web-server --web-port 8090 --web-hostname 0.0.0.0`
 
+### Network is open only at startup (important)
+`pub.dev` / `storage.googleapis.com` are reachable while the startup update script runs (so `flutter pub get` can fetch packages), but are **firewalled off during the interactive session** (GitHub stays reachable). Consequences during a session:
+- Adding/upgrading a pub package that isn't already in `~/.pub-cache` will fail — add it to `pubspec.yaml` and let the next startup `flutter pub get` cache it, or only use already-cached packages.
+- Commands that implicitly re-resolve (`flutter analyze`, `flutter run`, `flutter test`) try an online `pub get` first and fail with a TLS/handshake error. Avoid this with the cached lockfile: `flutter pub get --offline`, then `dart analyze lib`, `flutter run ... --no-pub`, `flutter test --no-pub`.
+
+External URL opening is implemented for web via `package:web` (`lib/utils/link_launcher*.dart`); non-web builds fall back to a no-op (would need `url_launcher` for native browser opening).
+
 ### Running the app without real Firebase credentials (non-obvious)
 `main.dart` calls `Firebase.initializeApp(...)` at startup, and `lib/firebase_options.dart` ships with `REPLACE_ME` placeholders. To actually run/interact with the app locally without a real Firebase project, use the **Firebase Local Emulator Suite** with a demo project. This requires two *temporary* edits (do NOT commit them):
 1. In `lib/firebase_options.dart`, set the `web` `FirebaseOptions` to a demo project, e.g. `projectId: 'demo-optimyweb'`, `apiKey: 'demo-api-key'`, `appId: '1:1234567890:web:demoapp'`, `messagingSenderId: '1234567890'` (demo projects skip credential validation).
