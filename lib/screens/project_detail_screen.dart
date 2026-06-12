@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../models/task.dart';
 import '../services/project_repository.dart';
+import '../widgets/project_url_link.dart';
 import 'project_form_screen.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
@@ -218,10 +219,11 @@ class _ProjectHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (project.url != null && project.url!.isNotEmpty)
-              SelectableText(
-                project.url!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ProjectUrlLink(
+                  url: project.url!,
+                  style: theme.textTheme.bodyMedium,
                 ),
               ),
             if (project.goal.isNotEmpty) ...[
