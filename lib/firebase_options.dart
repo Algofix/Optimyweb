@@ -37,11 +37,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_ME',
-    appId: 'REPLACE_ME',
-    messagingSenderId: 'REPLACE_ME',
-    projectId: 'REPLACE_ME',
-    storageBucket: 'REPLACE_ME.firebasestorage.app',
+    apiKey: 'AIzaSyDQ1290-KFFp-MUz4dL-G3Mvil6HnYjxIg',
+    appId: '1:728473924781:android:22198ce900b690d7050224',
+    messagingSenderId: '728473924781',
+    projectId: 'optimyweb-4c4b1',
+    storageBucket: 'optimyweb-4c4b1.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
