@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/project.dart';
 import '../services/project_repository.dart';
+import '../widgets/project_url_link.dart';
 import 'project_detail_screen.dart';
 import 'project_form_screen.dart';
 
@@ -154,11 +155,9 @@ class _ProjectCard extends StatelessWidget {
               ),
               if (project.url != null && project.url!.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                Text(
-                  project.url!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ProjectUrlLink(url: project.url!),
                 ),
               ],
               if (project.goal.isNotEmpty) ...[
